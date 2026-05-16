@@ -2,7 +2,9 @@
 title: "Case Study 3"
 author: "Alexandra Faber, Lena Hauer, Fiona Trumshi"
 date: "2026-05-06"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
 subtitle: AKSTA Statistical Computing
 ---
 
@@ -21,6 +23,46 @@ As a reminder, the data set includes world data from 2020, focusing on:
 for most world entities in 2020. The data was downloaded from https://www.cia.gov/the-world-factbook/about/archives/.
 Additional information on continent, subcontinent/region and income status was appended 
 to the dataset in Case Study 2.
+
+
+## AI Usage
+
+\begin{table}[ht]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l|ccccccccc}
+\toprule
+\textbf{AI usage} & \textbf{Question a} & \textbf{Question b} & \textbf{Question c} & \textbf{Question d} & \textbf{Question e} & \textbf{Question f} & \textbf{Question g} & \textbf{Question i} & \textbf{Question j} & \textbf{Question k} & \textbf{Question l} & \textbf{Question m} & \textbf{Question n} & \textbf{Question o} \\
+\midrule
+\textit{Feedback on existing solution} & no & no & no & no & no & no & no & no & no & no & no & no & no & no\\
+\textit{Improving existing code}       & little & no & no & little & little & no & no & no & no & no & no & no & no & no\\
+\textit{Generating new code}           & no & no & no & no & no & no & no & no & no & no & no & no & no & no\\
+\textit{Layout and formatting}         & no & no & no & no & no & no & no & no & no & no & no & no & no & no\\
+\textit{Text correction}               & no & no & no & no & no & no & no & no & no & no & no & no & no & no\\
+\textit{Debugging}                     & no & no & no & no & no & no & no & no & no & no & no & no & no & no\\
+\textit{AI Model}                      & Gemini 3.1 & no & no & Gemini 3.1 & Gemini 3.1 & no & no & no & no & no & no & no & no & no\\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+#getwd()
+
+df <- read.csv("df.csv", sep=";", dec=",", na.strings = ".")
+
+
+# Eliminate missing values in income status
+df <- df %>% filter(grepl( 'income', income_status, ignore.case = TRUE))
+```
 
 # Tasks:
 
@@ -42,8 +84,47 @@ income status such that in the plots the legend is ordered from High (H) to Low 
   * Rename the x axis as "Education expenditure (% of GDP)"
 
   Comment briefly on the plot.
+  
+```{r}
+
+df$Education_Expenditure <- as.numeric(gsub(",", ".", df$Education_Expenditure))
+
+# ordering the levels of the income
+df$income_status <- factor(df$income_status, 
+                           levels = c("High income", 
+                                      "Upper middle income", 
+                                      "Lower middle income", 
+                                      "Low income"))
+
+ggplot(df, aes(x = Education_Expenditure, 
+               fill = income_status, 
+               group = income_status)) +
+  geom_density(alpha = 0.5, color = "black") +
+  
+  scale_fill_manual(
+    values = c(
+      "High income" = "red",         
+      "Upper middle income" = "yellow", 
+      "Lower middle income" = "green", 
+      "Low income" = "blue"
+    )
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "top",
+    legend.title = element_blank()
+    
+  ) +
+  labs(
+    x = "Education expenditure (% of GDP)",
+    y = "Density"
+  )
+```
+As we can see, a most of the countries with high or upper middle high income spend a lot of their money (around 5% of their GDP) on education. The lower income countries mostly spend between 2,5 and 3 % and have a wider distribution than the high income countries which means that some low income countries also spend as much money on education (percentually) as high income countries.
+
 
 ## b. Income status in different continents
+
 
 Investigate how the income status is distributed in the different continents. 
 
@@ -57,10 +138,112 @@ Comment the plot.
 * Briefly comment on the differences between the three plots generated to investigate the income 
 distribution among the different continents.
 
+```{r}
+df$income_status <- factor(df$income_status, 
+                           levels = c("High income", 
+                                      "Upper middle income", 
+                                      "Lower middle income", 
+                                      "Low income"))
+                           
+ggplot(df, aes(x = continent, fill = income_status)) +
+  geom_bar(position = "stack") + # absolute frequencies
+  scale_fill_manual(
+    values = c(
+      "High income" = "lightpink",         
+      "Upper middle income" = "orange", 
+      "Lower middle income" = "lightgreen", 
+      "Low income" = "lightblue"
+    )
+  )+
+  theme_minimal() +
+  labs(title = "Absolute Frequencies: Income Status by Continent", 
+       x = "Continent", 
+       y = "Number of Countries")
+
+```
+\\
+As we can see Oceania has much less countries than the other continents. We can compare the continents easily without overestimating the smaller ones, but we cannot easily make comemnts about the distribution inside the continenets.
+
+```{r}
+df$income_status <- factor(df$income_status, 
+                           levels = c("High income", 
+                                      "Upper middle income", 
+                                      "Lower middle income", 
+                                      "Low income"))
+
+ggplot(df, aes(x = continent, fill = income_status)) +
+  geom_bar(position = "fill") + # relative frequencies
+  scale_fill_manual(
+    values = c(
+      "High income" = "lightpink",         
+      "Upper middle income" = "orange", 
+      "Lower middle income" = "lightgreen", 
+      "Low income" = "lightblue"
+    )
+  )+
+  theme_minimal() +
+  labs(title = "Relative Frequencies: Income Status by Continent", 
+       x = "Continent", 
+       y = "Proportion")
+
+```
+\\ 
+With relative frequencies the percentages in the different continents can be analyzed better, but Oceania seems much more important than it is, so we cant really compare the continets with each other.
+
+```{r}
+df$income_status <- factor(df$income_status, 
+                           levels = c("High income", 
+                                      "Upper middle income", 
+                                      "Lower middle income", 
+                                      "Low income"))
+# Mosaic plot for income status per continent
+mosaicplot(table(df$continent, df$income_status), 
+           main = "Mosaic Plot of Continent vs Income Status", 
+           col = c("lightpink", "orange", "lightgreen", "lightblue"), 
+           las = 1)
+```
+\\
+The mosaic plot looks very similiar to the relative frequencies one. The difference is that the legend is in the plot itself and if an income status doesn't exist on a continent its shown by a line. It also doesn't have a percentage legend which makes it harder to get definitive statements (like more than half) out of it.
+\\
+Each Graph has its uses and faults it depends on what needs to be highlighted or compared.
+
 ## c. Income status in different subcontinents
 
 For Oceania, investigate further how the income status distribution is in the different subcontinents.
 Use one of the plots in b. for this purpose. Comment on the results.
+
+```{r}
+df$income_status <- factor(df$income_status, 
+                           levels = c("High income", 
+                                      "Upper middle income", 
+                                      "Lower middle income", 
+                                      "Low income"))
+
+# Filter for Oceania
+df_oceania <- df %>% filter(continent == "Oceania")
+
+# Using a relative frequency barplot
+ggplot(df_oceania, aes(x = subcontinent, fill = income_status)) +
+  geom_bar(position = "fill") +
+  scale_fill_manual(
+     values = c(
+      "High income" = "lightpink",         
+      "Upper middle income" = "orange", 
+      "Lower middle income" = "lightgreen", 
+      "Low income" = "lightblue"
+    )
+  )+
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Relative Income Status in Oceania Subcontinents", 
+       x = "Subcontinent", 
+       y = "Proportion")
+
+```
+\\
+As we can see in the plot, the difference between the subcontinents is pretty big from consisting of only nigh income countries (Australia and New Zealand) and mostly low income countries (Melanesia). This plot shows that huge differences exist inside continents so to analyze it better the continent should be splitted into its countries or at least regions or subcontinents.
+
+
 
 ## d. Net migration in different continents
 
@@ -75,6 +258,34 @@ which country in Asia constitutes the largest positive outlier.
 * Comment on the plot.
 
 
+```{r }
+
+ggplot(df, aes(x = continent, y = Net_Migration)) +
+  geom_boxplot(fill = "lightblue", outlier.color = "red") +
+  theme_minimal() +
+  labs(title = "Distribution of Net Migration by Continent",
+       x = "Continent", 
+       y = "Net Migration Rate (per 1,000 persons)")
+
+# only data from asia
+df_asia <- df %>% filter(continent == "Asia")
+
+# Largest positive outlier
+max_asia <- df_asia %>% arrange(desc(Net_Migration)) %>% slice(1)
+
+# Largest negative outlier
+min_asia <- df_asia %>% arrange(Net_Migration) %>% slice(1)
+
+# printing outliers
+cat("Largest positive outlier in Asia:", max_asia$Country, "with a rate of", max_asia$Net_Migration, "\n")
+cat("Largest negative outlier in Asia:", min_asia$Country, "with a rate of", min_asia$Net_Migration, "\n")
+```
+
+\\
+The largest Outlier in Asia is Syria and the most negative Outlier is Lebanon. 
+
+As we can see that all continents are more or less balanced around zero apart from Asia and Oceania. Oceania has a mostly negative migration rate, which means that people are leaving the countries.
+
 ## e. Net migration in different subcontinents
 
 The graph in d. clearly does not convey the whole picture. It would be interesting also 
@@ -87,6 +298,39 @@ using again parallel boxplots.  Group the boxplots by continent (hint: use `face
 * Remember to prettify the plot (rotate axis labels if needed).
 
 * Describe what you see.
+
+```{r }
+library(stringr)
+df_clean <- df %>%
+  filter(continent != "." & subcontinent != ".") %>%
+  filter(!is.na(continent) & !is.na(subcontinent)) %>%
+  # replacing " and " with " & " 
+  mutate(subcontinent = str_replace_all(subcontinent, " and ", " & "))
+
+ggplot(df_clean, aes(x = subcontinent, y = Net_Migration)) +
+  geom_boxplot(fill = "lightblue") +
+  
+  # spacing the continents according to the number of sub continents
+  facet_grid(. ~ continent, scales = "free_x", space = "free_x") +
+  
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 15)) # scaling the labels on the x axis
+  + theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+    panel.spacing = unit(1, "lines")
+  ) +
+  labs(
+    title = "Net Migration by Subcontinent (Grouped by Continent)",
+    x = "Subcontinent", 
+    y = "Net Migration Rate (per 1,000 persons)"
+  )
+
+```
+\\
+This Plot shows that the two extreme outliers on the asian continent are in Western Asia. 
+In America and Africa the south has much extremer Migration rates than the north. 
+By far the biggest differeneces between the different sub-continents is in Oceania. While Australia and New Zealand have only positive migration rates, most countries in Micronesia and Polynesia have a negative one.
+Europe is very balanced but western europa has gained more people by migration than the rest.
 
 ## f. Median net migration rate per subcontinent.
 
